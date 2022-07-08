@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+set -eo pipefail
+shopt -s expand_aliases
+alias weed="setup_weed; weed"
+alias pd-ctl="pd-ctl --cacert ${DRYCC_STORAGE_CA} --key ${DRYCC_STORAGE_KEY} --cert ${DRYCC_STORAGE_CERT}"
+alias tikv-ctl="tikv-ctl --ca-path ${DRYCC_STORAGE_CA} --key-path ${DRYCC_STORAGE_KEY} --cert-path ${DRYCC_STORAGE_CERT}"
+alias pd-server="setup_pd; pd-server -config /etc/tikv/pd.toml"
+alias tikv-server="setup_tikv; tikv-server --config /etc/tikv/tikv.toml"
+
+usage()
+{
+  echo "Valid commands for boot:"
+  echo ""
+  echo "controls pd              run pd-ctl"
+  echo "controls csi             run seaweedfs csi driver"
+  echo "controls tikv            run tikv-ctl"
+  echo "mainnode pd              start pd-server for tikv"
+  echo "mainnode weed            start seaweedfs master"
+  echo "metanode weed            start seaweedfs filer"
+  echo "metanode tikv            start tikv-server"
+  echo "datanode weed            start seaweedfs volume"
+  echo ""
+  echo "Use 'boot [command] [subcommand] --help' to learn more."
+}
+
+controls()
+{
+  case "$1" in
+    'pd')
+      shift
+      pd-ctl $@
+	  ;;
+    'csi')
+      shift
+      weed-csi $@
+	  ;;
+    'tikv')
+      shift
+      tikv-ctl $@
+	  ;;
+    *)
+  	  usage
+	  ;;
+  esac
+}
+
+mainnode()
+{
+  case "$1" in
+    'pd')
+      shift
+      pd-server $@
+	  ;;
+    'weed')
+      shift
+      weed master -disableHttp $@
+	  ;;
+    *)
+  	  usage
+	  ;;
+  esac
+}
+
+metanode()
+{
+  case "$1" in
+    'weed')
+      shift
+      weed filer -disableHttp -s3 $@
+	  ;;
+    'tikv')
+      shift
+      tikv-server $@
+	  ;;
+    *)
+  	  usage
+	  ;;
+  esac
+}
+
+datanode()
+{
+  case "$1" in
+    'weed')
+      shift
+      weed volume -disableHttp $@
+	  ;;
+    *)
+  	  usage
+	  ;;
+  esac
+}
+
+setup_pd() {
+  cat /etc/tikv/pd.toml.tpl > /etc/tikv/pd.toml
+  sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/tikv/pd.toml
+  sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/tikv/pd.toml
+  sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/tikv/pd.toml
+}
+
+setup_tikv() {
+  cat /etc/tikv/tikv.toml.tpl > /etc/tikv/tikv.toml
+  sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/tikv/tikv.toml
+  sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/tikv/tikv.toml
+  sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/tikv/tikv.toml
+}
+
+setup_weed() {
+  cat /etc/seaweedfs/filer.toml.tpl > /etc/seaweedfs/filer.toml
+  cat /etc/seaweedfs/security.toml.tpl > /etc/seaweedfs/security.toml
+  
+  sed -i "s#%DRYCC_STORAGE_PD%#${DRYCC_STORAGE_PD}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_JWT%#${DRYCC_STORAGE_JWT}#g" /etc/seaweedfs/security.toml
+  sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/seaweedfs/security.toml
+  sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/seaweedfs/security.toml
+  sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/seaweedfs/security.toml
+}
+
+if [ -z "${DRYCC_STORAGE_CA}" ]; then
+  echo '[ERROR] ' "DRYCC_STORAGE_CA env required." >&2
+  exit 1
+fi
+
+if [ -z "${DRYCC_STORAGE_JWT}" ]; then
+  echo '[ERROR] ' "DRYCC_STORAGE_JWT env required." >&2
+  exit 1
+fi
+
+if [ -z "${DRYCC_STORAGE_KEY}" ]; then
+  echo '[ERROR] ' "DRYCC_STORAGE_KEY env required." >&2
+  exit 1  
+fi
+
+if [ -z "${DRYCC_STORAGE_CERT}" ]; then
+  echo '[ERROR] ' "DRYCC_STORAGE_CERT env required." >&2
+  exit 1    
+fi
+
+case "$1" in
+  'controls')
+  	shift
+  	controls $@
+	;;
+  'mainnode')
+  	shift
+  	mainnode $@
+	;;
+  'metanode')
+  	shift
+  	metanode $@
+	;;
+  'datanode')
+  	shift
+  	datanode $@
+	;;
+  *)
+  	usage
+	;;
+esac
