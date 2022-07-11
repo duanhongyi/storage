@@ -79,14 +79,14 @@ metanode()
         echo '[ERROR] ' "DRYCC_STORAGE_SECRETKEY env required." >&2
         exit 1
       fi
-      cat /etc/tikv/s3.json.tpl /etc/tikv/s3.json
+      cat /etc/seaweedfs/s3.json.tpl > /etc/seaweedfs/s3.json
       sed -i "s#%DRYCC_STORAGE_ACCESSKEY%#${DRYCC_STORAGE_ACCESSKEY}#g" /etc/seaweedfs/s3.json
       sed -i "s#%DRYCC_STORAGE_SECRETKEY%#${DRYCC_STORAGE_SECRETKEY}#g" /etc/seaweedfs/s3.json
-      weed filer -disableHttp -s3 -s3.config /etc/tikv/s3.json $@
+      weed filer -master "${DRYCC_STORAGE_MAINNODE}:9333" -s3 -s3.config /etc/seaweedfs/s3.json $@
     ;;
     'tikv')
       shift
-      tikv-server $@
+      tikv-server --pd-endpoints="https://${DRYCC_STORAGE_MAINNODE}:2379" $@
     ;;
     *)
       usage
@@ -99,7 +99,7 @@ datanode()
   case "$1" in
     'weed')
       shift
-      weed volume -disableHttp $@
+      weed volume -mserver "${DRYCC_STORAGE_MAINNODE}:9333" $@
     ;;
     *)
       usage
