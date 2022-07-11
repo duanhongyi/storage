@@ -28,7 +28,7 @@ controls()
   case "$1" in
     'pd')
       shift
-      pd-ctl --key ${DRYCC_STORAGE_KEY} --cert ${DRYCC_STORAGE_CERT} --cacert ${DRYCC_STORAGE_CA} $@
+      pd-ctl $@
     ;;
     'csi')
       shift
@@ -36,7 +36,7 @@ controls()
     ;;
     'tikv')
       shift
-      tikv-ctl --key-path ${DRYCC_STORAGE_KEY} --cert-path ${DRYCC_STORAGE_CERT} --ca-path ${DRYCC_STORAGE_CA} $@
+      tikv-ctl $@
     ;;
     *)
       usage
@@ -71,7 +71,18 @@ metanode()
   case "$1" in
     'weed')
       shift
-      weed filer -disableHttp -s3 $@
+      if [ -z "${DRYCC_STORAGE_ACCESSKEY}" ]; then
+        echo '[ERROR] ' "DRYCC_STORAGE_ACCESSKEY env required." >&2
+        exit 1
+      fi
+      if [ -z "${DRYCC_STORAGE_SECRETKEY}" ]; then
+        echo '[ERROR] ' "DRYCC_STORAGE_SECRETKEY env required." >&2
+        exit 1
+      fi
+      cat /etc/tikv/s3.json.tpl /etc/tikv/s3.json
+      sed -i "s#%DRYCC_STORAGE_ACCESSKEY%#${DRYCC_STORAGE_ACCESSKEY}#g" /etc/seaweedfs/s3.json
+      sed -i "s#%DRYCC_STORAGE_SECRETKEY%#${DRYCC_STORAGE_SECRETKEY}#g" /etc/seaweedfs/s3.json
+      weed filer -disableHttp -s3 -s3.config /etc/tikv/s3.json $@
     ;;
     'tikv')
       shift
