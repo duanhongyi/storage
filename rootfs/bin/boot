@@ -28,19 +28,19 @@ controls()
   case "$1" in
     'pd')
       shift
-      pd-ctl $@
-	  ;;
+      pd-ctl --key ${DRYCC_STORAGE_KEY} --cert ${DRYCC_STORAGE_CERT} --cacert ${DRYCC_STORAGE_CA} $@
+    ;;
     'csi')
       shift
       weed-csi $@
-	  ;;
+    ;;
     'tikv')
       shift
-      tikv-ctl $@
-	  ;;
+      tikv-ctl --key-path ${DRYCC_STORAGE_KEY} --cert-path ${DRYCC_STORAGE_CERT} --ca-path ${DRYCC_STORAGE_CA} $@
+    ;;
     *)
-  	  usage
-	  ;;
+      usage
+    ;;
   esac
 }
 
@@ -49,15 +49,20 @@ mainnode()
   case "$1" in
     'pd')
       shift
-      pd-server $@
-	  ;;
+      has_master=$(controls pd health -u https://${DRYCC_STORAGE_MAINNODE}:2379 | jq -n type)
+      if [[ "$has_master"=="null" ]]; then
+        pd-server $@
+      else
+        pd-server --join="https://${DRYCC_STORAGE_MAINNODE}:2379" $@
+      fi
+    ;;
     'weed')
       shift
       weed master -disableHttp $@
-	  ;;
+    ;;
     *)
-  	  usage
-	  ;;
+      usage
+    ;;
   esac
 }
 
@@ -67,14 +72,14 @@ metanode()
     'weed')
       shift
       weed filer -disableHttp -s3 $@
-	  ;;
+    ;;
     'tikv')
       shift
       tikv-server $@
-	  ;;
+    ;;
     *)
-  	  usage
-	  ;;
+      usage
+    ;;
   esac
 }
 
@@ -84,10 +89,10 @@ datanode()
     'weed')
       shift
       weed volume -disableHttp $@
-	  ;;
+    ;;
     *)
-  	  usage
-	  ;;
+      usage
+    ;;
   esac
 }
 
@@ -139,24 +144,29 @@ if [ -z "${DRYCC_STORAGE_CERT}" ]; then
   exit 1    
 fi
 
+if [ -z "${DRYCC_STORAGE_MAINNODE}" ]; then
+  echo '[ERROR] ' "DRYCC_STORAGE_MAINNODE env required." >&2
+  exit 1    
+fi
+
 case "$1" in
   'controls')
-  	shift
-  	controls $@
-	;;
+    shift
+    controls $@
+  ;;
   'mainnode')
-  	shift
-  	mainnode $@
-	;;
+    shift
+    mainnode $@
+  ;;
   'metanode')
-  	shift
-  	metanode $@
-	;;
+    shift
+    metanode $@
+  ;;
   'datanode')
-  	shift
-  	datanode $@
-	;;
+    shift
+    datanode $@
+  ;;
   *)
-  	usage
-	;;
+    usage
+  ;;
 esac
