@@ -82,7 +82,7 @@ metanode()
       cat /etc/seaweedfs/s3.json.tpl > /etc/seaweedfs/s3.json
       sed -i "s#%DRYCC_STORAGE_ACCESSKEY%#${DRYCC_STORAGE_ACCESSKEY}#g" /etc/seaweedfs/s3.json
       sed -i "s#%DRYCC_STORAGE_SECRETKEY%#${DRYCC_STORAGE_SECRETKEY}#g" /etc/seaweedfs/s3.json
-      weed filer -disableHttp -s3 -s3.config /etc/seaweedfs/s3.json $@
+      weed filer -s3 -s3.config /etc/seaweedfs/s3.json $@
     ;;
     'tikv')
       shift
@@ -99,7 +99,7 @@ datanode()
   case "$1" in
     'weed')
       shift
-      weed volume -disableHttp $@
+      weed volume $@
     ;;
     *)
       usage
