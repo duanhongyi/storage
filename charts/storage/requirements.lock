@@ -1,6 +1,0 @@
-dependencies:
-- name: common
-  repository: https://charts.drycc.cc/stable
-  version: v1.1.0
-digest: sha256:9fdac6d6f6c9011eb8a2e6ff2eb69fd7676293df6c1b7e0eb5b1222c1ea0383b
-generated: "2022-07-12T11:32:03.778089878+08:00"
