@@ -86,7 +86,7 @@ spec:
             failureThreshold: 5
           volumeMounts:
           {{- if .Values.mainnode.persistence.enabled }}
-          - name: storage-datanode
+          - name: storage-mainnode
             mountPath: /data/
           {{- end }}
           - name: certs
@@ -149,7 +149,7 @@ spec:
             failureThreshold: 5
           volumeMounts:
           {{- if .Values.mainnode.persistence.enabled }}
-          - name: storage-datanode
+          - name: storage-mainnode
             mountPath: /data/
           {{- end }}
           - name: certs
