@@ -1,0 +1,159 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $replicaCount := int .Values.metadata.replicas }}
+{{- $clusterDomain := .Value.global.clusterDomain }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: drycc-storage-metadata
+  labels:
+    heritage: drycc
+  annotations:
+    component.drycc.cc/version: {{ .Values.imageTag }}
+spec:
+  serviceName: drycc-storage
+  replicas: {{ $replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: drycc-storage-metadata
+  template:
+    metadata:
+      labels:
+        app: drycc-storage-metadata
+    spec:
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.metanode.podAntiAffinityPreset.type "key" .Values.metanode.podAntiAffinityPreset.key "values" .Values.metanode.podAntiAffinityPreset.values ) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
+      serviceAccount: drycc-storage
+      containers:
+        - name: drycc-storage-metadata-filer
+          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args:
+            - "boot metanode weed tikv"
+            - -port.grpc=8888
+            - -master="https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333"
+            - -defaultStoreDir=/tmp/data
+            - -s3.config=/etc/seaweedfs/config.json
+            - -metricsPort=9326
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_ACCESSKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: accesskey
+            - name: "DRYCC_STORAGE_SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: secretkey
+          ports:
+            - containerPort: 8888
+            - containerPort: 18888
+            - containerPort: 9326
+          livenessProbe:
+            tcpSocket:
+              port: 8888
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 8888
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          {{- if .Values.metanode.persistence.enabled }}
+          volumeMounts:
+          - name: storage-metanode
+              mountPath: /data/
+          {{- end }}
+        - name: drycc-storage-metadata-tikv
+          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args:
+            - "boot metanode tikv"
+            - --pd-endpoints=https://drycc-storage-mainnode.{{ $.Release.Namespace }}.svc.{{ $.Values.global.clusterDomain }}:2379
+            - --addr="0.0.0.0:20160" \
+            - --status-addr="0.0.0.0:20180"
+            - --advertise-addr="${POD_NAME}.drycc-storage-metadata.${NAMESPACE}.svc.{{ $clusterDomain }}:20160"
+            - --advertise-status-addr="${POD_NAME}.drycc-storage-metadata.${NAMESPACE}.{{ $clusterDomain }}:20180"
+            - --data-dir="/data/tikv"
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 20160
+            - containerPort: 20180
+          livenessProbe:
+            tcpSocket:
+              port: 20160
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 20180
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          {{- if .Values.metanode.persistence.enabled }}
+          volumeMounts:
+          - name: storage-metanode
+              mountPath: /data/
+          {{- end }}
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
+  {{- if .Values.metanode.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: storage-metanode
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.metanode.persistence.storageClass }}
+      {{- if (eq "-" .Values.metanode.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.metanode.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.metanode.persistence.size | quote }}
+  {{- end }}
+{{- end }}

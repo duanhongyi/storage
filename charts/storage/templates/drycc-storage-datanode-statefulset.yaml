@@ -1,0 +1,100 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $replicaCount := int .Values.datanode.replicas }}
+{{- $clusterDomain := .Value.global.clusterDomain }}
+apiVersion: apps/v1
+kind: StatefulSet
+datanode:
+  name: drycc-storage-datanode
+  labels:
+    heritage: drycc
+  annotations:
+    component.drycc.cc/version: {{ .Values.imageTag }}
+spec:
+  serviceName: drycc-storage
+  replicas: {{ $replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: drycc-storage-datanode
+  template:
+    metadata:
+      labels:
+        app: drycc-storage-datanode
+    spec:
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.datanode.podAntiAffinityPreset.type "key" .Values.datanode.podAntiAffinityPreset.key "values" .Values.datanode.podAntiAffinityPreset.values ) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
+      serviceAccount: drycc-storage
+      containers:
+        - name: drycc-storage-datanode-filer
+          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args:
+            - "boot datanode weed"
+            - -max=100
+            - -mserver="https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333"
+            - -dir="/data/filer"
+            - -metricsPort=9325
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 8080
+            - containerPort: 18080
+            - containerPort: 9325
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          {{- if .Values.datanode.persistence.enabled }}
+          volumeMounts:
+          - name: storage-datanode
+              mountPath: /data/
+          {{- end }}
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
+  {{- if .Values.datanode.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: storage-datanode
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.datanode.persistence.storageClass }}
+      {{- if (eq "-" .Values.datanode.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.datanode.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.datanode.persistence.size | quote }}
+  {{- end }}
+{{- end }}

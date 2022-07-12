@@ -1,0 +1,110 @@
+imageOrg: "drycc"
+imagePullPolicy: "Always"
+imageTag: "canary"
+imageRegistry: "registry.drycc.cc"
+
+# The following parameters are configured only when using an on-cluster storage instance
+nodeAffinityPreset:
+  key: "drycc.cc/node"
+  type: "soft"
+  values:
+  - "true"
+
+podAffinityPreset:
+  key: "security"
+  type: ""
+  values:
+  - "drycc-security"
+
+# mainnode seaweedFS master & pd
+mainnode:
+  replicas: 3
+  podAntiAffinityPreset:
+    key: "app"
+    type: "soft"
+    values:
+    - "drycc-storage-mainnode"
+  # persistence config
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    storageClass: ""
+    volumeName: ""
+
+# metanode: seaweedFS filer & tikv
+metanode:
+  replicas: 3
+  podAntiAffinityPreset:
+    key: "app"
+    type: "soft"
+    values:
+    - "drycc-storage-metanode"
+# persistence config
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    storageClass: ""
+    volumeName: ""
+
+# datanode: seaweedFS volume
+datanode:
+  replicas: 3
+  podAntiAffinityPreset:
+    key: "app"
+    type: "soft"
+    values:
+    - "drycc-storage-datanode"
+  # persistence config
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    storageClass: ""
+    volumeName: ""
+
+tls:
+  enabled: true
+
+# Service
+service:
+  # Provide any additional service annotations
+  annotations: {}
+
+global:
+  # Admin email, used for each component to send email to administrator
+  email: "drycc@drycc.cc"
+  # Set the location of Workflow's influxdb cluster
+  #
+  # Valid values are:
+  # - on-cluster: Run Influxdb within the Kubernetes cluster
+  # - off-cluster: Influxdb is running outside of the cluster and credentials and connection information will be provided.
+  influxdbLocation: "on-cluster"
+  # Set the location of Workflow's grafana instance
+  #
+  # Valid values are:
+  # - on-cluster: Run Grafana within the Kubernetes cluster
+  # - off-cluster: Grafana is running outside of the cluster
+  grafanaLocation: "on-cluster"
+
+  # Please check `kubernetes.io/ingress.class`
+  # The cert-manager component must be installed
+  # If you want to use HTTPSEnforced or allowlist functions, you must specify:
+  # - nginx
+  # - traefik
+  # Only the above options have been supported so far
+  ingressClass: ""
+  # A domain name consists of one or more parts.
+  # Periods (.) are used to separate these parts.
+  # Each part must be 1 to 63 characters in length and can contain lowercase letters, digits, and hyphens (-).
+  # It must start and end with a lowercase letter or digit.
+  clusterDomain: "cluster.local"
+  # The publicly resolvable hostname to build your cluster with.
+  #
+  # This will be the hostname that is used to build endpoints such as "drycc.$HOSTNAME"
+  platformDomain: ""
+  # Whether certManagerEnabled is true to automatically generate drycc certificates
+  certManagerEnabled: true
+
+  storageLocation: on-cluster
