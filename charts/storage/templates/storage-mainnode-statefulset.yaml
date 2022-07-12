@@ -87,7 +87,7 @@ spec:
           volumeMounts:
           {{- if .Values.mainnode.persistence.enabled }}
           - name: storage-datanode
-              mountPath: /data/
+            mountPath: /data/
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
@@ -150,7 +150,7 @@ spec:
           volumeMounts:
           {{- if .Values.mainnode.persistence.enabled }}
           - name: storage-datanode
-              mountPath: /data/
+            mountPath: /data/
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/

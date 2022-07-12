@@ -9,7 +9,7 @@ spec:
     matchLabels:
       app: drycc-storage-csi-controller
   serviceName: drycc-storage-csi-controller
-  replicas: {{ .Values.statefulset.replicas }}
+  replicas: {{ .Values.csi.statefulset.replicas }}
   template:
     metadata:
       labels:
