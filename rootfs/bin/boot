@@ -7,6 +7,7 @@ alias tikv-ctl="tikv-ctl --ca-path ${DRYCC_STORAGE_CA} --key-path ${DRYCC_STORAG
 alias pd-server="setup_pd; pd-server -config /etc/tikv/pd.toml"
 alias tikv-server="setup_tikv; tikv-server --config /etc/tikv/tikv.toml"
 
+
 usage()
 {
   echo "Valid commands for boot:"
@@ -49,11 +50,20 @@ mainnode()
   case "$1" in
     'pd')
       shift
-      has_master=$(controls pd health -u https://${DRYCC_STORAGE_MAINNODE}:2379 | jq -n type)
+      args=""
+      while [ $# -gt 0 ] ; do
+        case $1 in
+          --join) join="$2" ;;
+          **) args="${args} $1 $2";;
+        esac
+        shift 2
+      done
+      echo ${args}
+      has_master=$(controls pd health -u "${join}" | jq -n type)
       if [[ "$has_master"=="null" ]]; then
-        pd-server $@
+        pd-server $args
       else
-        pd-server --join="https://${DRYCC_STORAGE_MAINNODE}:2379" $@
+        pd-server --join "${join}" $args
       fi
     ;;
     'weed')
@@ -82,11 +92,11 @@ metanode()
       cat /etc/seaweedfs/s3.json.tpl > /etc/seaweedfs/s3.json
       sed -i "s#%DRYCC_STORAGE_ACCESSKEY%#${DRYCC_STORAGE_ACCESSKEY}#g" /etc/seaweedfs/s3.json
       sed -i "s#%DRYCC_STORAGE_SECRETKEY%#${DRYCC_STORAGE_SECRETKEY}#g" /etc/seaweedfs/s3.json
-      weed filer -master "${DRYCC_STORAGE_MAINNODE}:9333" -s3 -s3.config /etc/seaweedfs/s3.json $@
+      weed filer -s3 -s3.config /etc/seaweedfs/s3.json $@
     ;;
     'tikv')
       shift
-      tikv-server --pd-endpoints="https://${DRYCC_STORAGE_MAINNODE}:2379" $@
+      tikv-server $@
     ;;
     *)
       usage
@@ -99,7 +109,7 @@ datanode()
   case "$1" in
     'weed')
       shift
-      weed volume -mserver "${DRYCC_STORAGE_MAINNODE}:9333" $@
+      weed volume $@
     ;;
     *)
       usage
@@ -152,11 +162,6 @@ fi
 
 if [ -z "${DRYCC_STORAGE_CERT}" ]; then
   echo '[ERROR] ' "DRYCC_STORAGE_CERT env required." >&2
-  exit 1    
-fi
-
-if [ -z "${DRYCC_STORAGE_MAINNODE}" ]; then
-  echo '[ERROR] ' "DRYCC_STORAGE_MAINNODE env required." >&2
   exit 1    
 fi
 
