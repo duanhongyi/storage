@@ -14,7 +14,7 @@ spec:
   replicas: {{ $replicaCount }}
   updateStrategy:
     type: RollingUpdate
-  podManagementPolicy: Parallel
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: drycc-storage-datanode
