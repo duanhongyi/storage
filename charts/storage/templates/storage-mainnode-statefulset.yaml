@@ -30,13 +30,13 @@ spec:
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
       serviceAccount: drycc-storage
       containers:
-        - name: drycc-storage-seaweed
+        - name: drycc-storage-mainnode-seaweed
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
-            - "boot mainnode weed"
+            - mainnode
+            - weed
             - -mdir=/data/weed-master
-            - -ip="${POD_NAME}.drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}"
             - -port=9333
             - -peers={{range $i := until $mainReplicaCount}}drycc-storage-mainnode-{{ $i }}.drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333{{if lt (add 1 $i) $replicaCount}},{{end}}{{end}}
             - -metricsPort=9324
@@ -92,11 +92,12 @@ spec:
           - name: certs
             mountPath: /etc/drycc/storage/pki/
             readOnly: true
-        - name: drycc-storage-pd
+        - name: drycc-storage-mainnode-pd
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
-            - "boot mainnode pd"
+            - mainnode
+            - pd
             - --name=${POD_NAME}
             - --data-dir="/data/pd"
             - --client-urls="https://0.0.0.0:2379"

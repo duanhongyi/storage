@@ -33,7 +33,8 @@ spec:
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
-            - "boot datanode weed"
+            - datanode
+            - weed
             - -max=100
             - -mserver="https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333"
             - -dir="/data/filer"

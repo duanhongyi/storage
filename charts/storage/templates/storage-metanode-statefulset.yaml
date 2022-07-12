@@ -33,7 +33,8 @@ spec:
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
-            - "boot metanode weed"
+            - metanode
+            - weed
             - -master="https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333"
             - -defaultStoreDir=/data/filer
             - -metricsPort=9326
@@ -103,7 +104,8 @@ spec:
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
-            - "boot metanode tikv"
+            - metanode
+            - tikv"
             - --pd-endpoints=https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $.Values.global.clusterDomain }}:2379
             - --addr="0.0.0.0:20160" \
             - --status-addr="0.0.0.0:20180"
