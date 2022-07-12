@@ -11,7 +11,7 @@ metadata:
   annotations:
     component.drycc.cc/version: {{ .Values.imageTag }}
 spec:
-  serviceName: drycc-storage
+  serviceName: drycc-storage-mainnode
   replicas: {{ $replicaCount }}
   updateStrategy:
     type: RollingUpdate
