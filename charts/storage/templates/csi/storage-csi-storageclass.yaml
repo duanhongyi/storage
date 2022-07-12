@@ -4,6 +4,6 @@ apiVersion: storage.k8s.io/v1
 metadata:
   name: drycc-storage
   annotations:
-provisioner: seaweedfs-csi-driver
+provisioner: drycc-storage-csi
 allowVolumeExpansion: true
 {{- end }}
