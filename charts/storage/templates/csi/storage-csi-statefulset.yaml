@@ -56,7 +56,7 @@ spec:
             - controls
             - csi
             - "--endpoint=unix:///var/lib/csi/sockets/pluginproxy/csi.sock"
-            - "--filer=drycc-storage-metanode.${NAMESPACE}.svc.{{ $clusterDomain }}:18888"
+            - "--filer=drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:18888"
             - "--nodeid=$(NODE_NAME)"
           env:
             - name: NODE_NAME
