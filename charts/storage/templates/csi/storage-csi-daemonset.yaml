@@ -1,5 +1,5 @@
 {{- if eq .Values.global.storageLocation "on-cluster" }}
-{{- $clusterDomain := .Value.global.clusterDomain }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
@@ -21,7 +21,7 @@ spec:
       serviceAccountName: drycc-storage-csi
       containers:
         - name:  drycc-storage-csi-node-registrar
-          image:  {{ .Values.daemonset.registrarImage }}
+          image:  {{ .Values.csi.daemonset.registrarImage }}
           imagePullPolicy: IfNotPresent
           args:
             - "--v=5"
