@@ -11,6 +11,7 @@ metadata:
     heritage: drycc
 spec:
   clusterIP: None
+  publishNotReadyAddresses: true
   selector:
     app: drycc-storage-mainnode
   ports:
