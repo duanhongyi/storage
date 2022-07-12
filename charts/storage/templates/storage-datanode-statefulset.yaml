@@ -36,7 +36,7 @@ spec:
             - datanode
             - weed
             - -max=100
-            - -mserver="https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333"
+            - -mserver=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
             - -dir="/data/filer"
             - -metricsPort=9325
           env:

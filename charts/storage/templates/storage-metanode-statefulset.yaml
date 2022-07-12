@@ -35,7 +35,7 @@ spec:
           args:
             - metanode
             - weed
-            - -master="https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333"
+            - -master=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
             - -defaultStoreDir=/data/filer
             - -metricsPort=9326
           env:
@@ -105,13 +105,13 @@ spec:
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
             - metanode
-            - tikv"
+            - tikv
             - --pd-endpoints=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $.Values.global.clusterDomain }}:2379
-            - --addr="0.0.0.0:20160" \
-            - --status-addr="0.0.0.0:20180"
-            - --advertise-addr="$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:20160"
-            - --advertise-status-addr="$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).{{ $clusterDomain }}:20180"
-            - --data-dir="/data/tikv"
+            - --addr=0.0.0.0:20160
+            - --status-addr=0.0.0.0:20180
+            - --advertise-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:20160
+            - --advertise-status-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).{{ $clusterDomain }}:20180
+            - --data-dir=/data/tikv
           env:
             - name: POD_IP
               valueFrom:
