@@ -47,7 +47,7 @@ spec:
           args :
             - "controls csi"
             - "--endpoint=unix:///csi/csi.sock"
-            - "--filer=https://drycc-storage-metanode.${NAMESPACE}.svc.{{ $clusterDomain }}:8888"
+            - "--filer=drycc-storage-metanode.${NAMESPACE}.svc.{{ $clusterDomain }}:18888"
             - "--nodeid=$(NODE_NAME)"
           env:
             - name: NODE_NAME
