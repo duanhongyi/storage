@@ -1,3 +1,5 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $clusterDomain := .Value.global.clusterDomain }}
 kind: StatefulSet
 apiVersion: apps/v1
 metadata:
@@ -19,12 +21,9 @@ spec:
         - name: drycc-storage-csi-controller-provisioner
           image: {{ .Values.statefulset.provisionerImage }}
           args:
-            - "--csi-address=$(ADDRESS)"
+            - "--csi-address=/var/lib/csi/sockets/pluginproxy/csi.sock"
             - -v
             - "9"
-          env:
-            - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/csi.sock
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: socket-dir
@@ -33,11 +32,8 @@ spec:
           image: {{ .Values.statefulset.attacherImage }}
           args:
             - "--v=5"
-            - "--csi-address=$(ADDRESS)"
+            - "--csi-address=/var/lib/csi/sockets/pluginproxy/csi.sock"
             - "--timeout=120s"
-          env:
-            - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/csi.sock
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: socket-dir
@@ -47,11 +43,8 @@ spec:
           image: {{ .Values.statefulset.resizerImage }}
           args:
             - "--v=5"
-            - "--csi-address=$(ADDRESS)"
+            - "--csi-address=/var/lib/csi/sockets/pluginproxy/csi.sock"
             - "--leader-election=false"
-          env:
-            - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/csi.sock
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: socket-dir
@@ -61,21 +54,22 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - "controls csi"
-            - "--endpoint=$(CSI_ENDPOINT)"
-            - "--filer=$(SEAWEEDFS_FILER)"
-            - "--nodeid=$(NODE_ID)"
+            - "--endpoint=unix:///var/lib/csi/sockets/pluginproxy/csi.sock"
+            - "--filer=drycc-storage-metanode.${NAMESPACE}.svc.{{ $clusterDomain }}:18888"
+            - "--nodeid=$(NODE_NAME)"
           env:
-            - name: CSI_ENDPOINT
-              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
-            - name: SEAWEEDFS_FILER
-              value: "SEAWEEDFS_FILER:8888"
-            - name: NODE_ID
+            - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
       volumes:
         - name: socket-dir
           emptyDir: {}
+{{- end }}
