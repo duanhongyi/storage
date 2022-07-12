@@ -33,11 +33,9 @@ spec:
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
-            - "boot metanode weed tikv"
-            - -port.grpc=8888
+            - "boot metanode weed"
             - -master="https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333"
             - -defaultStoreDir=/tmp/data
-            - -s3.config=/etc/seaweedfs/config.json
             - -metricsPort=9326
           env:
             - name: POD_IP
