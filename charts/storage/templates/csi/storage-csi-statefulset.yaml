@@ -1,5 +1,5 @@
 {{- if eq .Values.global.storageLocation "on-cluster" }}
-{{- $clusterDomain := .Value.global.clusterDomain }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
 kind: StatefulSet
 apiVersion: apps/v1
 metadata:
@@ -19,7 +19,7 @@ spec:
       serviceAccountName: drycc-storage-csi
       containers:
         - name: drycc-storage-csi-controller-provisioner
-          image: {{ .Values.statefulset.provisionerImage }}
+          image: {{ .Values.csi.statefulset.provisionerImage }}
           args:
             - "--csi-address=/var/lib/csi/sockets/pluginproxy/csi.sock"
             - -v
@@ -29,7 +29,7 @@ spec:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
         - name: drycc-storage-csi-controller-attacher
-          image: {{ .Values.statefulset.attacherImage }}
+          image: {{ .Values.csi.statefulset.attacherImage }}
           args:
             - "--v=5"
             - "--csi-address=/var/lib/csi/sockets/pluginproxy/csi.sock"
@@ -40,7 +40,7 @@ spec:
               mountPath: /var/lib/csi/sockets/pluginproxy/
         # resizer
         - name: drycc-storage-csi-controller-resizer
-          image: {{ .Values.statefulset.resizerImage }}
+          image: {{ .Values.csi.statefulset.resizerImage }}
           args:
             - "--v=5"
             - "--csi-address=/var/lib/csi/sockets/pluginproxy/csi.sock"
