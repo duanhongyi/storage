@@ -3,7 +3,7 @@
 {{- $clusterDomain := .Values.global.clusterDomain }}
 apiVersion: apps/v1
 kind: StatefulSet
-datanode:
+metadata:
   name: drycc-storage-datanode
   labels:
     heritage: drycc
