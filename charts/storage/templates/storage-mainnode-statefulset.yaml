@@ -54,11 +54,11 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: "DRYCC_STORAGE_CA"
-              value: /tmp/pki/ca.crt
+              value: /etc/drycc/storage/pki/ca.crt
             - name: "DRYCC_STORAGE_CERT"
-              value: /tmp/pki/tls.crt
+              value: /etc/drycc/storage/pki/tls.crt
             - name: "DRYCC_STORAGE_KEY"
-              value: /tmp/pki/tls.key
+              value: /etc/drycc/storage/pki/tls.key
             - name: "DRYCC_STORAGE_JWT"
               valueFrom:
                 secretKeyRef:
@@ -90,7 +90,7 @@ spec:
               mountPath: /data/
           {{- end }}
           - name: certs
-            mountPath: /tmp/pki/
+            mountPath: /etc/drycc/storage/pki/
             readOnly: true
         - name: drycc-storage-pd
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
@@ -103,6 +103,7 @@ spec:
             - --peer-urls="https://0.0.0.0:2380"
             - --advertise-client-urls="https://${POD_NAME}.drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:2379"
             - --advertise-peer-urls="https://${POD_NAME}.drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:2380"
+            - --join="https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:2379"
           env:
             - name: POD_IP
               valueFrom:
@@ -117,11 +118,11 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: "DRYCC_STORAGE_CA"
-              value: /tmp/pki/ca.crt
+              value: /etc/drycc/storage/pki/ca.crt
             - name: "DRYCC_STORAGE_CERT"
-              value: /tmp/pki/tls.crt
+              value: /etc/drycc/storage/pki/tls.crt
             - name: "DRYCC_STORAGE_KEY"
-              value: /tmp/pki/tls.key
+              value: /etc/drycc/storage/pki/tls.key
             - name: "DRYCC_STORAGE_JWT"
               valueFrom:
                 secretKeyRef:
@@ -152,7 +153,7 @@ spec:
               mountPath: /data/
           {{- end }}
           - name: certs
-            mountPath: /tmp/pki/
+            mountPath: /etc/drycc/storage/pki/
             readOnly: true
       securityContext:
         fsGroup: 1001
