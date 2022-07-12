@@ -1,7 +1,7 @@
 {{- if eq .Values.global.storageLocation "on-cluster" }}
 {{- $replicaCount := int .Values.mainnode.replicas }}
-{{- $mainReplicaCount := int .Values.maindata.replicas }}
-{{- $clusterDomain := .Value.global.clusterDomain }}
+{{- $mainReplicaCount := int .Values.mainnode.replicas }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -38,7 +38,7 @@ spec:
             - -mdir=/data/weed-master
             - -ip="${POD_NAME}.drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}"
             - -port=9333
-            - -peers={{range $i := until $mainReplicaCount}}drycc-storage-mainnode-{{ $i }}.drycc-storage-mainnode.{{ $.Release.Namespace }}.svc.{{ $clusterDomain }}:9333{{if lt (add 1 $i) $replicaCount}},{{end}}{{end}}
+            - -peers={{range $i := until $mainReplicaCount}}drycc-storage-mainnode-{{ $i }}.drycc-storage-mainnode.${NAMESPACE}.svc.{{ $clusterDomain }}:9333{{if lt (add 1 $i) $replicaCount}},{{end}}{{end}}
             - -metricsPort=9324
           env:
             - name: POD_IP
@@ -53,6 +53,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_CA"
+              value: /tmp/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /tmp/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /tmp/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
           ports:
             - containerPort: 9333
             - containerPort: 19333
@@ -73,11 +84,14 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 5
-          {{- if .Values.mainnode.persistence.enabled }}
           volumeMounts:
-          - name: storage-mainnode
+          {{- if .Values.mainnode.persistence.enabled }}
+          - name: storage-datanode
               mountPath: /data/
           {{- end }}
+          - name: certs
+            mountPath: /tmp/pki/
+            readOnly: true
         - name: drycc-storage-pd
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -102,6 +116,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_CA"
+              value: /tmp/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /tmp/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /tmp/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
           ports:
             - containerPort: 2379
             - containerPort: 2380
@@ -121,15 +146,22 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 5
-          {{- if .Values.mainnode.persistence.enabled }}
           volumeMounts:
-          - name: storage-mainnode
+          {{- if .Values.mainnode.persistence.enabled }}
+          - name: storage-datanode
               mountPath: /data/
           {{- end }}
+          - name: certs
+            mountPath: /tmp/pki/
+            readOnly: true
       securityContext:
         fsGroup: 1001
         runAsGroup: 1001
         runAsUser: 1001
+      volumes:
+      - name: certs
+        secret:
+          secretName: drycc-storage-creds
   {{- if .Values.mainnode.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
