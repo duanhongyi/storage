@@ -75,7 +75,7 @@ datanode:
     volumeName: ""
 
 tls:
-  enabled: true
+  enabled: "true"
 
 # Service
 service:
@@ -85,19 +85,6 @@ service:
 global:
   # Admin email, used for each component to send email to administrator
   email: "drycc@drycc.cc"
-  # Set the location of Workflow's influxdb cluster
-  #
-  # Valid values are:
-  # - on-cluster: Run Influxdb within the Kubernetes cluster
-  # - off-cluster: Influxdb is running outside of the cluster and credentials and connection information will be provided.
-  influxdbLocation: "on-cluster"
-  # Set the location of Workflow's grafana instance
-  #
-  # Valid values are:
-  # - on-cluster: Run Grafana within the Kubernetes cluster
-  # - off-cluster: Grafana is running outside of the cluster
-  grafanaLocation: "on-cluster"
-
   # Please check `kubernetes.io/ingress.class`
   # The cert-manager component must be installed
   # If you want to use HTTPSEnforced or allowlist functions, you must specify:
@@ -115,6 +102,6 @@ global:
   # This will be the hostname that is used to build endpoints such as "drycc.$HOSTNAME"
   platformDomain: ""
   # Whether certManagerEnabled is true to automatically generate drycc certificates
-  certManagerEnabled: true
+  certManagerEnabled: "false"
 
   storageLocation: on-cluster

@@ -1,6 +1,6 @@
 {{- if eq .Values.global.storageLocation "on-cluster" }}
 {{- $replicaCount := int .Values.datanode.replicas }}
-{{- $clusterDomain := .Value.global.clusterDomain }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
 apiVersion: apps/v1
 kind: StatefulSet
 datanode:
@@ -51,6 +51,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_CA"
+              value: /tmp/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /tmp/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /tmp/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
           ports:
             - containerPort: 8080
             - containerPort: 18080
@@ -71,15 +82,22 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 5
-          {{- if .Values.datanode.persistence.enabled }}
           volumeMounts:
+          {{- if .Values.datanode.persistence.enabled }}
           - name: storage-datanode
               mountPath: /data/
           {{- end }}
+          - name: certs
+            mountPath: /tmp/pki/
+            readOnly: true
       securityContext:
         fsGroup: 1001
         runAsGroup: 1001
         runAsUser: 1001
+      volumes:
+      - name: certs
+        secret:
+          secretName: drycc-storage-creds
   {{- if .Values.datanode.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:

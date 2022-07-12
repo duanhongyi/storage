@@ -22,7 +22,7 @@ spec:
       port: 18888
       targetPort: 18888
       protocol: TCP
-    - metricsPort
+    - name: metricsPort
       port: 9326
       targetPort: 9326
       protocol: TCP

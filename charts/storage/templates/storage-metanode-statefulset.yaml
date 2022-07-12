@@ -1,10 +1,10 @@
 {{- if eq .Values.global.storageLocation "on-cluster" }}
-{{- $replicaCount := int .Values.metadata.replicas }}
-{{- $clusterDomain := .Value.global.clusterDomain }}
+{{- $replicaCount := int .Values.metanode.replicas }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: drycc-storage-metadata
+  name: drycc-storage-metanode
   labels:
     heritage: drycc
   annotations:
@@ -17,11 +17,11 @@ spec:
   podManagementPolicy: Parallel
   selector:
     matchLabels:
-      app: drycc-storage-metadata
+      app: drycc-storage-metanode
   template:
     metadata:
       labels:
-        app: drycc-storage-metadata
+        app: drycc-storage-metanode
     spec:
       affinity:
         podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
@@ -29,7 +29,7 @@ spec:
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
       serviceAccount: drycc-storage
       containers:
-        - name: drycc-storage-metadata-filer
+        - name: drycc-storage-metanode-filer
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
@@ -62,6 +62,17 @@ spec:
                 secretKeyRef:
                   name: drycc-storage-creds
                   key: secretkey
+            - name: "DRYCC_STORAGE_CA"
+              value: /tmp/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /tmp/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /tmp/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
           ports:
             - containerPort: 8888
             - containerPort: 18888
@@ -82,21 +93,24 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 5
-          {{- if .Values.metanode.persistence.enabled }}
           volumeMounts:
-          - name: storage-metanode
+          {{- if .Values.metanode.persistence.enabled }}
+          - name: storage-datanode
               mountPath: /data/
           {{- end }}
-        - name: drycc-storage-metadata-tikv
+          - name: certs
+            mountPath: /tmp/pki/
+            readOnly: true
+        - name: drycc-storage-metanode-tikv
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
             - "boot metanode tikv"
-            - --pd-endpoints=https://drycc-storage-mainnode.{{ $.Release.Namespace }}.svc.{{ $.Values.global.clusterDomain }}:2379
+            - --pd-endpoints=https://drycc-storage-mainnode.${NAMESPACE}.svc.{{ $.Values.global.clusterDomain }}:2379
             - --addr="0.0.0.0:20160" \
             - --status-addr="0.0.0.0:20180"
-            - --advertise-addr="${POD_NAME}.drycc-storage-metadata.${NAMESPACE}.svc.{{ $clusterDomain }}:20160"
-            - --advertise-status-addr="${POD_NAME}.drycc-storage-metadata.${NAMESPACE}.{{ $clusterDomain }}:20180"
+            - --advertise-addr="${POD_NAME}.drycc-storage-metanode.${NAMESPACE}.svc.{{ $clusterDomain }}:20160"
+            - --advertise-status-addr="${POD_NAME}.drycc-storage-metanode.${NAMESPACE}.{{ $clusterDomain }}:20180"
             - --data-dir="/data/tikv"
           env:
             - name: POD_IP
@@ -111,6 +125,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_CA"
+              value: /tmp/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /tmp/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /tmp/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
           ports:
             - containerPort: 20160
             - containerPort: 20180
@@ -130,15 +155,22 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 5
-          {{- if .Values.metanode.persistence.enabled }}
           volumeMounts:
-          - name: storage-metanode
+          {{- if .Values.metanode.persistence.enabled }}
+          - name: storage-datanode
               mountPath: /data/
           {{- end }}
+          - name: certs
+            mountPath: /tmp/pki/
+            readOnly: true
       securityContext:
         fsGroup: 1001
         runAsGroup: 1001
         runAsUser: 1001
+      volumes:
+      - name: certs
+        secret:
+          secretName: drycc-storage-creds
   {{- if .Values.metanode.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
