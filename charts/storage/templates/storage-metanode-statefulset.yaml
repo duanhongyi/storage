@@ -28,6 +28,20 @@ spec:
         podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.metanode.podAntiAffinityPreset.type "key" .Values.metanode.podAntiAffinityPreset.key "values" .Values.metanode.podAntiAffinityPreset.values ) | nindent 10 }}
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
       serviceAccount: drycc-storage
+      initContainers:
+      - name: drycc-storage-metanode-init
+        image: docker.io/drycc/python-dev:latest
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        args:
+          - netcat
+          - -v
+          - -a
+          - drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       containers:
         - name: drycc-storage-metanode-filer
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
