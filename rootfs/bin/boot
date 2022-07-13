@@ -60,7 +60,7 @@ mainnode()
         esac
         shift 1
       done
-      has_master=$(controls pd health -u "${join}" | jq -n type)
+      has_master=$(controls pd health -u "${join}" || echo "null")
       if [[ "$has_master"=="null" ]]; then
         pd-server $args
       else

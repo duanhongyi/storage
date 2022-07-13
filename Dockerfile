@@ -3,13 +3,11 @@ FROM registry.drycc.cc/drycc/base:bullseye
 ENV DRYCC_UID=1001 \
   DRYCC_GID=1001 \
   DRYCC_HOME_DIR=/data \
-  JQ_VERSION="1.6" \
   TIKV_VERSION="6.1.0" \
   SEAWEEDFS_VERSION="3.15"
 
 RUN groupadd drycc --gid ${DRYCC_GID} \
   && useradd drycc -u ${DRYCC_UID} -g ${DRYCC_GID} -s /bin/bash -m -d ${DRYCC_HOME_DIR} \
-  && install-stack jq $JQ_VERSION \
   && install-stack tikv $TIKV_VERSION \
   && install-stack seaweedfs $SEAWEEDFS_VERSION \
   && rm -rf \
