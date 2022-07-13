@@ -19,6 +19,21 @@ spec:
     spec:
       priorityClassName: system-node-critical
       serviceAccountName: drycc-storage-csi
+      initContainers:
+        - command:
+          - /bin/bash
+          - -ec
+          - |
+            chown -R 1001:1001 /csi
+          image: registry.uucin.com/drycc/base:bullseye
+          imagePullPolicy: IfNotPresent
+          name: volume-permissions
+          resources: {}
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /csi/
       containers:
         - name:  drycc-storage-csi-node-registrar
           image:  {{ .Values.csi.daemonset.registrarImage }}
