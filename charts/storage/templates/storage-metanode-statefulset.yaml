@@ -35,8 +35,8 @@ spec:
           args:
             - metanode
             - weed
-            - -master=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
-            - -defaultStoreDir=/data/filer
+            - -master=drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
+            - -defaultStoreDir=/data
             - -metricsPort=9326
           env:
             - name: POD_IP
@@ -95,7 +95,7 @@ spec:
           volumeMounts:
           {{- if .Values.metanode.persistence.enabled }}
           - name: storage-metanode
-            mountPath: /data/filer
+            mountPath: /data
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
@@ -111,7 +111,7 @@ spec:
             - --status-addr=0.0.0.0:20180
             - --advertise-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:20160
             - --advertise-status-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).{{ $clusterDomain }}:20180
-            - --data-dir=/data/tikv
+            - --data-dir=/data
           env:
             - name: POD_IP
               valueFrom:
@@ -158,7 +158,7 @@ spec:
           volumeMounts:
           {{- if .Values.metanode.persistence.enabled }}
           - name: storage-metanode
-            mountPath: /data/tikv
+            mountPath: /data
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/

@@ -36,8 +36,8 @@ spec:
             - datanode
             - weed
             - -max=100
-            - -mserver=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
-            - -dir="/data"
+            - -mserver=drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
+            - -dir=/data
             - -metricsPort=9325
           env:
             - name: POD_IP
@@ -86,7 +86,7 @@ spec:
           volumeMounts:
           {{- if .Values.datanode.persistence.enabled }}
           - name: storage-datanode
-            mountPath: /data/filer
+            mountPath: /data
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
