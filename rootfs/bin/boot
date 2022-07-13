@@ -54,9 +54,11 @@ mainnode()
       while [ $# -gt 0 ] ; do
         case $1 in
           --join) join="$2" ;;
-          **) args="${args} $1 $2";;
+          --join=*) join="${1:7}" ;;
+          -*=*) args="$args $1" ;;
+          -*) args="$args $1 $2" ;;
         esac
-        shift 2
+        shift 1
       done
       has_master=$(controls pd health -u "${join}" | jq -n type)
       if [[ "$has_master"=="null" ]]; then
