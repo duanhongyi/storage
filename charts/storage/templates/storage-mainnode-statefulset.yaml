@@ -36,7 +36,7 @@ spec:
           args:
             - mainnode
             - weed
-            - -mdir=/data/weed-master
+            - -mdir=/data/weed
             - -ip=$(POD_NAME).drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}
             - -port=9333
             - -peers={{range $i := until $mainReplicaCount}}drycc-storage-mainnode-{{ $i }}.drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333{{if lt (add 1 $i) $replicaCount}},{{end}}{{end}}
@@ -88,7 +88,7 @@ spec:
           volumeMounts:
           {{- if .Values.mainnode.persistence.enabled }}
           - name: storage-mainnode
-            mountPath: /data/
+            mountPath: /data/weed
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
@@ -152,7 +152,7 @@ spec:
           volumeMounts:
           {{- if .Values.mainnode.persistence.enabled }}
           - name: storage-mainnode
-            mountPath: /data/
+            mountPath: /data/pd
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/

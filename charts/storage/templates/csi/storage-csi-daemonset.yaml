@@ -59,6 +59,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_CA"
+              value: /etc/drycc/storage/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /etc/drycc/storage/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /etc/drycc/storage/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
           volumeMounts:
             - name: plugin-dir
               mountPath: /csi
@@ -67,6 +78,9 @@ spec:
               mountPropagation: "Bidirectional"
             - mountPath: /dev
               name: device-dir
+            - name: certs
+              mountPath: /etc/drycc/storage/pki/
+              readOnly: true
       volumes:
         - name: registration-dir
           hostPath:
@@ -83,4 +97,7 @@ spec:
         - name: device-dir
           hostPath:
             path: /dev
+        - name: certs
+          secret:
+            secretName: drycc-storage-creds
 {{- end }}
