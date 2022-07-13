@@ -29,7 +29,7 @@ spec:
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
       serviceAccount: drycc-storage
       containers:
-        - name: drycc-storage-datanode-filer
+        - name: drycc-storage-datanode-volume
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
@@ -37,7 +37,7 @@ spec:
             - weed
             - -max=100
             - -mserver=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
-            - -dir="/data/filer"
+            - -dir="/data"
             - -metricsPort=9325
           env:
             - name: POD_IP

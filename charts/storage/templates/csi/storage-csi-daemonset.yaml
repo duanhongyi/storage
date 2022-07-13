@@ -46,7 +46,8 @@ spec:
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: IfNotPresent
           args :
-            - "controls csi"
+            - controls
+            - csi
             - "--endpoint=unix:///csi/csi.sock"
             - "--filer=drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:18888"
             - "--nodeid=$(NODE_NAME)"
