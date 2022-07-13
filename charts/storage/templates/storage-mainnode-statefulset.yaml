@@ -1,6 +1,5 @@
 {{- if eq .Values.global.storageLocation "on-cluster" }}
 {{- $replicaCount := int .Values.mainnode.replicas }}
-{{- $mainReplicaCount := int .Values.mainnode.replicas }}
 {{- $clusterDomain := .Values.global.clusterDomain }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -39,7 +38,7 @@ spec:
             - -mdir=/data
             - -ip=$(POD_NAME).drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}
             - -port=9333
-            - -peers={{range $i := until $mainReplicaCount}}drycc-storage-mainnode-{{ $i }}.drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333{{if lt (add 1 $i) $replicaCount}},{{end}}{{end}}
+            - -peers={{ include "metanode.WeedUrls" . }}
             - -metricsPort=9324
           env:
             - name: POD_IP
@@ -105,7 +104,7 @@ spec:
             - --peer-urls=https://0.0.0.0:2380
             - --advertise-client-urls=https://$(POD_NAME).drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:2379
             - --advertise-peer-urls=https://$(POD_NAME).drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:2380
-            - --join=https://drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:2379
+            - --join={{ include "metanode.WeedUrls" . }}
           env:
             - name: POD_IP
               valueFrom:

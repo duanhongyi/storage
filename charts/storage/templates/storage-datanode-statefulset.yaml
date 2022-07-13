@@ -36,12 +36,12 @@ spec:
           - netcat
           - -v
           - -a
-          - drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
-          env:
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+          - {{ include "metanode.WeedUrls" . }}
+        env:
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
       containers:
         - name: drycc-storage-datanode-volume
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
@@ -50,7 +50,7 @@ spec:
             - datanode
             - weed
             - -max=100
-            - -mserver=drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:9333
+            - -mserver={{ include "metanode.WeedUrls" . }}
             - -dir=/data
             - -metricsPort=9325
           env:
