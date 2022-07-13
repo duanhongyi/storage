@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -eo pipefail
 shopt -s expand_aliases
 alias weed="setup_weed; weed"
 alias pd-ctl="pd-ctl --cacert ${DRYCC_STORAGE_CA} --key ${DRYCC_STORAGE_KEY} --cert ${DRYCC_STORAGE_CERT}"
@@ -60,11 +59,13 @@ mainnode()
         esac
         shift 1
       done
-      has_master=$(controls pd health -u "${join}" 2>&1 > /dev/null || echo "null")
-      if [[ "$has_master"=="null" ]]; then
-        pd-server $args
-      else
+
+      failed=$(controls pd health -u "${join}" | jq empty > /dev/null 2>&1; echo $?)
+      # clean old data
+      if [[ $failed -eq 0 ]]; then
         pd-server --join "${join}" $args
+      else
+        pd-server $args
       fi
     ;;
     'weed')
