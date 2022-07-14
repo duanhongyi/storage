@@ -59,7 +59,7 @@ mainnode()
         esac
         shift 1
       done
-      for i in {0..30}
+      for i in {0..20}
       do
         failed=$(controls pd health -u "${join}" | jq empty > /dev/null 2>&1; echo $?)
         if [[ $failed -eq 0 ]]; then
