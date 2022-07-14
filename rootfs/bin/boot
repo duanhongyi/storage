@@ -59,8 +59,14 @@ mainnode()
         esac
         shift 1
       done
-
-      failed=$(controls pd health -u "${join}" | jq empty > /dev/null 2>&1; echo $?)
+      for i in {0..30}
+      do
+        failed=$(controls pd health -u "${join}" | jq empty > /dev/null 2>&1; echo $?)
+        if [[ $failed -eq 0 ]]; then
+          break
+        fi
+        sleep 1s
+      done
       if [[ $failed -eq 0 ]]; then
         pd-server --join "${join}" $args
       else
