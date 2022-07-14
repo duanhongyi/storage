@@ -67,6 +67,8 @@ mainnode()
         fi
         sleep 1s
       done
+      # clean old data
+      rm -rf /data/*
       if [[ $failed -eq 0 ]]; then
         pd-server --join "${join}" $args
       else

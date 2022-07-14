@@ -100,7 +100,7 @@ spec:
             - mainnode
             - pd
             - --name=$(POD_NAME)
-            - --data-dir=/data/pd
+            - --data-dir=/data
             - --client-urls=https://0.0.0.0:2379
             - --peer-urls=https://0.0.0.0:2380
             - --advertise-client-urls=https://$(POD_NAME).drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:2379
