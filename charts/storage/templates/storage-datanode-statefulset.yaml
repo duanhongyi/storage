@@ -43,7 +43,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
       containers:
-        - name: drycc-storage-datanode-volume
+        - name: drycc-storage-datanode-weed
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
@@ -101,6 +101,7 @@ spec:
           {{- if .Values.datanode.persistence.enabled }}
           - name: storage-datanode
             mountPath: /data
+            subPath: weed
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/

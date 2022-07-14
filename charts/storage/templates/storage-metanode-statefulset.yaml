@@ -43,7 +43,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
       containers:
-        - name: drycc-storage-metanode-filer
+        - name: drycc-storage-metanode-weed
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
@@ -110,6 +110,7 @@ spec:
           {{- if .Values.metanode.persistence.enabled }}
           - name: storage-metanode
             mountPath: /data
+            subPath: weed
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
@@ -173,6 +174,7 @@ spec:
           {{- if .Values.metanode.persistence.enabled }}
           - name: storage-metanode
             mountPath: /data
+            subPath: tikv
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/

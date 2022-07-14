@@ -29,7 +29,7 @@ spec:
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
       serviceAccount: drycc-storage
       containers:
-        - name: drycc-storage-mainnode-seaweed
+        - name: drycc-storage-mainnode-weed
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           args:
@@ -88,6 +88,7 @@ spec:
           {{- if .Values.mainnode.persistence.enabled }}
           - name: storage-mainnode
             mountPath: /data
+            subPath: weed
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
@@ -99,7 +100,7 @@ spec:
             - mainnode
             - pd
             - --name=$(POD_NAME)
-            - --data-dir=/data
+            - --data-dir=/data/pd
             - --client-urls=https://0.0.0.0:2379
             - --peer-urls=https://0.0.0.0:2380
             - --advertise-client-urls=https://$(POD_NAME).drycc-storage-mainnode.$(NAMESPACE).svc.{{ $clusterDomain }}:2379
@@ -152,6 +153,7 @@ spec:
           {{- if .Values.mainnode.persistence.enabled }}
           - name: storage-mainnode
             mountPath: /data
+            subPath: pd
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
