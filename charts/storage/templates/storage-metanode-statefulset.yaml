@@ -23,7 +23,6 @@ spec:
       labels:
         app: drycc-storage-metanode
     spec:
-      setHostnameAsFQDN: true
       affinity:
         podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
         podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.metanode.podAntiAffinityPreset.type "key" .Values.metanode.podAntiAffinityPreset.key "values" .Values.metanode.podAntiAffinityPreset.values ) | nindent 10 }}
