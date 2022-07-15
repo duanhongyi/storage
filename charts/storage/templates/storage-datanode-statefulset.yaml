@@ -36,7 +36,7 @@ spec:
           - netcat
           - -v
           - -a
-          - {{ include "metanode.WeedUrls" . }}
+          - {{ include "mainnode.WeedUrls" . }}
         env:
           - name: NAMESPACE
             valueFrom:
@@ -50,7 +50,7 @@ spec:
             - datanode
             - weed
             - -max=100
-            - -mserver={{ include "metanode.WeedUrls" . }}
+            - -mserver={{ include "mainnode.WeedUrls" . }}
             - -dir=/data
             - -metricsPort=9325
           env:
