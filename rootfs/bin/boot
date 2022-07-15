@@ -102,9 +102,7 @@ metanode()
         echo '[ERROR] ' "DRYCC_STORAGE_SECRETKEY env required." >&2
         exit 1
       fi
-      cat /etc/seaweedfs/s3.json.tpl > /etc/seaweedfs/s3.json
-      sed -i "s#%DRYCC_STORAGE_ACCESSKEY%#${DRYCC_STORAGE_ACCESSKEY}#g" /etc/seaweedfs/s3.json
-      sed -i "s#%DRYCC_STORAGE_SECRETKEY%#${DRYCC_STORAGE_SECRETKEY}#g" /etc/seaweedfs/s3.json
+      setup_weed_filer
       weed filer -s3 -s3.config /etc/seaweedfs/s3.json $@
     ;;
     'tikv')
@@ -145,17 +143,22 @@ setup_tikv() {
 }
 
 setup_weed() {
-  cat /etc/seaweedfs/filer.toml.tpl > /etc/seaweedfs/filer.toml
   cat /etc/seaweedfs/security.toml.tpl > /etc/seaweedfs/security.toml
-  
-  sed -i "s#%DRYCC_STORAGE_PD_ADDRS%#${DRYCC_STORAGE_PD_ADDRS}#g" /etc/seaweedfs/filer.toml
-  sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/seaweedfs/filer.toml
-  sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/seaweedfs/filer.toml
-  sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/seaweedfs/filer.toml
   sed -i "s#%DRYCC_STORAGE_JWT%#${DRYCC_STORAGE_JWT}#g" /etc/seaweedfs/security.toml
   sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/seaweedfs/security.toml
   sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/seaweedfs/security.toml
   sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/seaweedfs/security.toml
+}
+
+setup_weed_filer() {
+  cat /etc/seaweedfs/s3.json.tpl > /etc/seaweedfs/s3.json
+  cat /etc/seaweedfs/filer.toml.tpl > /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_ACCESSKEY%#${DRYCC_STORAGE_ACCESSKEY}#g" /etc/seaweedfs/s3.json
+  sed -i "s#%DRYCC_STORAGE_SECRETKEY%#${DRYCC_STORAGE_SECRETKEY}#g" /etc/seaweedfs/s3.json
+  sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_PD_ADDRS%#${DRYCC_STORAGE_PD_ADDRS}#g" /etc/seaweedfs/filer.toml
 }
 
 if [ -z "${DRYCC_STORAGE_CA}" ]; then
