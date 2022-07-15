@@ -2,7 +2,7 @@
 enabled = true
 # If you have many pd address, use ',' split then:
 #   pdaddrs = "pdhost1:2379,pdhost2:2379,pdhost3:2379"
-pdaddrs = "%DRYCC_STORAGE_PD%"
+pdaddrs = "%DRYCC_STORAGE_PD_ADDRS%"
 # Concurrency for TiKV delete range
 deleterange_concurrency = 1
 # Enable 1PC

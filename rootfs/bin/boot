@@ -90,6 +90,10 @@ metanode()
   case "$1" in
     'weed')
       shift
+      if [ -z "${DRYCC_STORAGE_PD_ADDRS}" ]; then
+        echo '[ERROR] ' "DRYCC_STORAGE_PD_ADDRS env required." >&2
+        exit 1
+      fi
       if [ -z "${DRYCC_STORAGE_ACCESSKEY}" ]; then
         echo '[ERROR] ' "DRYCC_STORAGE_ACCESSKEY env required." >&2
         exit 1
@@ -144,7 +148,7 @@ setup_weed() {
   cat /etc/seaweedfs/filer.toml.tpl > /etc/seaweedfs/filer.toml
   cat /etc/seaweedfs/security.toml.tpl > /etc/seaweedfs/security.toml
   
-  sed -i "s#%DRYCC_STORAGE_PD%#${DRYCC_STORAGE_PD}#g" /etc/seaweedfs/filer.toml
+  sed -i "s#%DRYCC_STORAGE_PD_ADDRS%#${DRYCC_STORAGE_PD_ADDRS}#g" /etc/seaweedfs/filer.toml
   sed -i "s#%DRYCC_STORAGE_CA%#${DRYCC_STORAGE_CA}#g" /etc/seaweedfs/filer.toml
   sed -i "s#%DRYCC_STORAGE_KEY%#${DRYCC_STORAGE_KEY}#g" /etc/seaweedfs/filer.toml
   sed -i "s#%DRYCC_STORAGE_CERT%#${DRYCC_STORAGE_CERT}#g" /etc/seaweedfs/filer.toml
