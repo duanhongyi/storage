@@ -6,6 +6,9 @@ expires_after_seconds = 10           # seconds
 key = "%DRYCC_STORAGE_JWT%"
 expires_after_seconds = 10           # seconds
 
+[access]
+ui = false
+
 [jwt.filer_signing]
 key = "%DRYCC_STORAGE_JWT%"
 expires_after_seconds = 10           # seconds

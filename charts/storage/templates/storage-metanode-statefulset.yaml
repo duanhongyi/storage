@@ -93,7 +93,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 8888
-            initialDelaySeconds: 5
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1
@@ -157,7 +157,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 20160
-            initialDelaySeconds: 5
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1

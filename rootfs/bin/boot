@@ -77,7 +77,7 @@ mainnode()
     ;;
     'weed')
       shift
-      weed master -disableHttp $@
+      weed master $@
     ;;
     *)
       usage
