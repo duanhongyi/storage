@@ -62,7 +62,7 @@ mainnode()
       done
       for i in {0..20}
       do
-        echo -e "\\033[32m---> Waiting other mainnode pd running...\\033[0m"
+        echo -e "\\033[32m---> Waiting ${i}s for other mainnode pd running...\\033[0m"
         failed=$(controls pd health -u "${join}" | jq empty > /dev/null 2>&1; echo $?)
         if [[ $failed -eq 0 ]]; then
           break
