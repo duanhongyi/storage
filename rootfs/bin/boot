@@ -52,7 +52,8 @@ mainnode()
       args=""
       while [ $# -gt 0 ] ; do
         case $1 in
-          --join) join="$2" ;;
+          --join | -join) join="$2" ;;
+          -join=*) join="${1:6}" ;;
           --join=*) join="${1:7}" ;;
           -*=*) args="$args $1" ;;
           -*) args="$args $1 $2" ;;
