@@ -1,4 +1,4 @@
-{{- define "metanode.WeedUrls" -}}
+{{- define "mainnode.WeedUrls" -}}
 {{- $replicaCount := int .Values.mainnode.replicas }}
 {{- $clusterDomain := .Values.global.clusterDomain }}
 {{- $messages := list -}}
@@ -9,7 +9,7 @@
 {{- printf "%s" $message }}
 {{- end -}}
 
-{{- define "metanode.PdUrls" -}}
+{{- define "mainnode.PdUrls" -}}
 {{- $replicaCount := int .Values.mainnode.replicas }}
 {{- $clusterDomain := .Values.global.clusterDomain }}
 {{- $messages := list -}}
