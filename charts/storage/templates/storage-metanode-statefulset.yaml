@@ -46,8 +46,6 @@ spec:
         - name: drycc-storage-metanode-tikv
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          lifecycle:
-            type: Sidecar
           args:
             - metanode
             - tikv
