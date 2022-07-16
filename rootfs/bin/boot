@@ -61,7 +61,7 @@ mainnode()
         shift 1
       done
       echo -e "\\033[32m---> Waiting for other mainnode pd running...\\033[0m"
-      for i in {0..20}
+      for i in {0..10}
       do
         failed=$(controls pd health -u "${join}" | jq empty > /dev/null 2>&1; echo $?)
         if [[ $failed -eq 0 ]]; then

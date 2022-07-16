@@ -43,6 +43,76 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
       containers:
+        - name: drycc-storage-metanode-tikv
+          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          lifecycle:
+            type: Sidecar
+          args:
+            - metanode
+            - tikv
+            - --pd-endpoints={{ include "mainnode.PdUrls" . }}
+            - --addr=0.0.0.0:20160
+            - --status-addr=0.0.0.0:20180
+            - --advertise-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:20160
+            - --advertise-status-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).{{ $clusterDomain }}:20180
+            - --data-dir=/data
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: "DRYCC_STORAGE_CA"
+              value: /etc/drycc/storage/pki/ca.crt
+            - name: "DRYCC_STORAGE_CERT"
+              value: /etc/drycc/storage/pki/tls.crt
+            - name: "DRYCC_STORAGE_KEY"
+              value: /etc/drycc/storage/pki/tls.key
+            - name: "DRYCC_STORAGE_JWT"
+              valueFrom:
+                secretKeyRef:
+                  name: drycc-storage-creds
+                  key: jwtkey
+          ports:
+            - containerPort: 20160
+            - containerPort: 20180
+          livenessProbe:
+            tcpSocket:
+              port: 20160
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 20180
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          volumeMounts:
+          {{- if .Values.metanode.persistence.enabled }}
+          - name: storage-metanode
+            mountPath: /data
+            subPath: tikv
+          {{- end }}
+          - name: certs
+            mountPath: /etc/drycc/storage/pki/
+            readOnly: true
+          lifecycle:
+            postStart:
+              tcpSocket:
+                port: 20160
         - name: drycc-storage-metanode-weed
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -113,72 +183,6 @@ spec:
           - name: storage-metanode
             mountPath: /data
             subPath: weed
-          {{- end }}
-          - name: certs
-            mountPath: /etc/drycc/storage/pki/
-            readOnly: true
-        - name: drycc-storage-metanode-tikv
-          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
-          lifecycle:
-            type: Sidecar
-          args:
-            - metanode
-            - tikv
-            - --pd-endpoints={{ include "mainnode.PdUrls" . }}
-            - --addr=0.0.0.0:20160
-            - --status-addr=0.0.0.0:20180
-            - --advertise-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).svc.{{ $clusterDomain }}:20160
-            - --advertise-status-addr=$(POD_NAME).drycc-storage-metanode.$(NAMESPACE).{{ $clusterDomain }}:20180
-            - --data-dir=/data
-          env:
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: "DRYCC_STORAGE_CA"
-              value: /etc/drycc/storage/pki/ca.crt
-            - name: "DRYCC_STORAGE_CERT"
-              value: /etc/drycc/storage/pki/tls.crt
-            - name: "DRYCC_STORAGE_KEY"
-              value: /etc/drycc/storage/pki/tls.key
-            - name: "DRYCC_STORAGE_JWT"
-              valueFrom:
-                secretKeyRef:
-                  name: drycc-storage-creds
-                  key: jwtkey
-          ports:
-            - containerPort: 20160
-            - containerPort: 20180
-          livenessProbe:
-            tcpSocket:
-              port: 20160
-            initialDelaySeconds: 30
-            periodSeconds: 5
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 5
-          readinessProbe:
-            tcpSocket:
-              port: 20180
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 5
-          volumeMounts:
-          {{- if .Values.metanode.persistence.enabled }}
-          - name: storage-metanode
-            mountPath: /data
-            subPath: tikv
           {{- end }}
           - name: certs
             mountPath: /etc/drycc/storage/pki/
