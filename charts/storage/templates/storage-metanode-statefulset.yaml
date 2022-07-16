@@ -109,10 +109,6 @@ spec:
           - name: certs
             mountPath: /etc/drycc/storage/pki/
             readOnly: true
-          lifecycle:
-            postStart:
-              tcpSocket:
-                port: 20160
         - name: drycc-storage-metanode-weed
           image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
